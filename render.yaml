@@ -1,0 +1,38 @@
+# Blueprint de Render: crea base de datos, backend y frontend de una sola vez.
+# En Render: New + > Blueprint > selecciona el repositorio. Pedirá los valores marcados sync:false.
+databases:
+  - name: reportes-db
+    databaseName: reportes
+    user: reportes
+    postgresMajorVersion: "18"
+    plan: free
+
+services:
+  - type: web
+    name: reportes-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: reportes-db
+          property: connectionString
+      - key: APP_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: APP_URL
+        sync: https://temporal.com        # URL pública del frontend, p. ej. https://reportes-web.onrender.com
+
+  - type: web
+    name: reportes-web
+    runtime: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: free
+    envVars:
+      - key: BACKEND_URL
+        sync: https://temporal.com       # URL pública del backend, p. ej. https://reportes-api.onrender.com

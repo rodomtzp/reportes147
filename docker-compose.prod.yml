@@ -1,0 +1,57 @@
+# Producción:  docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+# - Sin puertos de la base de datos ni código montado.
+# - El backend corre con gunicorn y APP_ENV=production (rechaza SECRET_KEY débil o de ejemplo).
+# - Publica solo el puerto 80 de nginx; el TLS (https) lo termina un proxy del plantel (ver README).
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      APP_ENV: production
+      SECRET_KEY: ${SECRET_KEY}
+      ACCESS_TOKEN_MINUTOS: ${ACCESS_TOKEN_MINUTOS:-15}
+      REFRESH_TOKEN_HORAS: ${REFRESH_TOKEN_HORAS:-8}
+      UPLOADS_DIR: /data/uploads
+      APP_TIMEZONE: America/Mexico_City
+      PLANTEL_NOMBRE: ${PLANTEL_NOMBRE:-CBTis 147}
+      ORIENTACION_CONTACTO: ${ORIENTACION_CONTACTO:-}
+      APP_URL: ${APP_URL}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      SMTP_STARTTLS: ${SMTP_STARTTLS:-true}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  uploads:
