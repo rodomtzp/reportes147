@@ -3,6 +3,13 @@
 Flask + SQLAlchemy + PostgreSQL (backend) y React + TypeScript (frontend), con Clean Architecture.
 Estado actual: **Fase 6 — versión 1.0** (exportaciones a Excel, bitácora, seguridad, respaldos y despliegue) sobre la Fase 5 (sanciones, ciclos de acumulación y alertas), la Fase 4 (llamadas y WhatsApp), la Fase 3 (reportes), la Fase 2 (estudiantes, importación y avance de semestre), la Fase 1 (catálogos, usuarios y tutores) y la Fase 0 (fundamentos y autenticación).
 
+## Aplicación en línea de ejemplo
+
+- URL: https://reportes-web-hvrr.onrender.com/login
+- API: https://reportes-api-zowi.onrender.com/api/v1/health
+- VIDEO:
+
+
 ## Arranque rápido (Docker)
 
 ```bash
